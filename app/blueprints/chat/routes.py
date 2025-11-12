@@ -8,100 +8,132 @@ from werkzeug.utils import secure_filename
 UPLOAD_FOLDER = 'app/static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'docx'}
 
+chat_blueprint = Blueprint('chat', __name__)
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-chat_blueprint = Blueprint('chat', __name__)
 
+# ==========================================================
+# 🔹 PÁGINA PRINCIPAL DO CHAT (Admin ou Usuário)
+# ==========================================================
 @chat_blueprint.route('/chat')
 @login_required
 def chat():
-    role = current_user.role
-    room_name = None
-
-    if role == "malote":
-        room_name = "malote_admin"
-    elif role == "recepcao":
-        room_name = "recepcao_admin"
-    elif role == "medico_regulador":
-        room_name = "regulacao_admin"
-    elif role == "admin":
-        room_name = "malote_admin"  # o admin pode ter interface para trocar entre salas
-
-    return render_template("chat/chat.html", room_name=room_name)
-
-@chat_blueprint.route("/chat/malote")
-@login_required
-def chat_malote_admin():
-    # Buscar o usuário admin
+    """Carrega a tela do chat com as conversas relevantes."""
     with mysql.get_cursor(dictionary=True) as (_, cursor):
+        role = current_user.role
+
+        # 🔹 ADMIN vê todas as conversas
+        if role == "admin":
+            cursor.execute("""
+                SELECT c.id, c.room, 
+                       GROUP_CONCAT(u.nome SEPARATOR ', ') AS participantes
+                FROM conversations c
+                JOIN conversation_participants p ON c.id = p.conversation_id
+                JOIN usuarios u ON p.user_id = u.id
+                GROUP BY c.id, c.room
+                ORDER BY c.created_at DESC
+            """)
+            conversas = cursor.fetchall()
+            return render_template(
+                "chat/chat.html",
+                role=role,
+                conversas=conversas,
+                current_user=current_user
+            )
+
+        # 🔹 Caso contrário, usuário comum → conversa 1:1 com admin
         cursor.execute("SELECT id FROM usuarios WHERE role = 'admin' LIMIT 1")
         admin = cursor.fetchone()
+        if not admin:
+            return "❌ Nenhum administrador encontrado.", 500
 
-    if not admin:
-        return "❌ Nenhum administrador encontrado.", 500
+        conversation_id, room_name = get_or_create_conversation(current_user.id, admin["id"])
 
-    # Criar ou obter conversa privada entre o malote e o admin
-    conversation_id, room_name = get_or_create_private_conversation(
-        current_user.id, admin["id"]
-    )
-
-    return render_template("chat/chat.html", room_name=room_name)
-
-@chat_blueprint.route('/chat/<room_name>')
+        return render_template(
+            "chat/chat.html",
+            role=role,
+            room_name=room_name,
+            conversation_id=conversation_id,
+            current_user=current_user
+        )
+# ==========================================================
+# 🔹 BUSCAR MENSAGENS DE UMA CONVERSA
+# ==========================================================
+@chat_blueprint.route('/chat/mensagens/<int:conversation_id>')
 @login_required
-def chat_room(room_name):
-    conn = mysql.connect()
-    cursor = conn.cursor(dictionary=True)
+def get_messages(conversation_id):
+    """Retorna as mensagens salvas de uma conversa específica."""
+    try:
+        print(f"🧠 Buscando mensagens da conversa ID: {conversation_id}")
 
-    cursor.execute("""
-        SELECT m.message, m.created_at, u.nome AS user
-        FROM messages m
-        JOIN usuarios u ON m.user_id = u.id
-        JOIN conversations c ON m.conversation_id = c.id
-        WHERE c.room = %s
-        ORDER BY m.created_at ASC
-    """, (room_name,))
-    messages = cursor.fetchall()
-    cursor.close()
+        with mysql.get_cursor(dictionary=True) as (_, cursor):
+            cursor.execute("""
+                SELECT u.nome AS user, m.message, m.created_at
+                FROM messages m
+                JOIN usuarios u ON u.id = m.user_id
+                WHERE m.conversation_id = %s
+                ORDER BY m.created_at ASC
+            """, (conversation_id,))
+            mensagens = cursor.fetchall()
 
-    return render_template('chat/chat.html', room_name=room_name, messages=messages)
+        print(f"✅ {len(mensagens)} mensagens encontradas")
+        return jsonify(mensagens)
 
+    except Exception as e:
+        print(f"❌ Erro ao carregar mensagens da conversa {conversation_id}: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+# ==========================================================
+# 🔹 UPLOAD DE ARQUIVOS
+# ==========================================================
 @chat_blueprint.route('/upload', methods=['POST'])
 @login_required
 def upload_file():
+    """Recebe e salva um arquivo enviado no chat."""
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     file = request.files['file']
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         file.save(os.path.join(UPLOAD_FOLDER, filename))
         return jsonify({'filename': filename}), 201
     return jsonify({'error': 'File type not allowed'}), 400
 
 
-@chat_blueprint.route('/chat/mensagens/<room_name>')
-@login_required
-def get_messages(room_name):
-    """Retorna as mensagens salvas de uma sala específica"""
-    try:
-        print(f"🧠 Buscando mensagens da sala: {room_name}")
+# ==========================================================
+# 🔹 FUNÇÃO AUXILIAR: CRIAR OU OBTER CONVERSA
+# ==========================================================
+def get_or_create_conversation(user_a_id, user_b_id):
+    """Cria ou retorna uma conversa única entre dois usuários."""
+    with mysql.get_cursor(dictionary=True) as (_, cursor):
+        # verifica se já existe uma conversa entre esses dois usuários
+        cursor.execute("""
+            SELECT c.id, c.room
+            FROM conversations c
+            JOIN conversation_participants p1 ON p1.conversation_id = c.id
+            JOIN conversation_participants p2 ON p2.conversation_id = c.id
+            WHERE p1.user_id = %s AND p2.user_id = %s
+            LIMIT 1
+        """, (user_a_id, user_b_id))
+        existing = cursor.fetchone()
 
-        with mysql.get_cursor() as (conn, cursor):
-            cursor.execute("""
-                SELECT m.id, u.nome AS user, m.message, m.created_at
-                FROM messages m
-                JOIN usuarios u ON u.id = m.user_id
-                JOIN conversations c ON c.id = m.conversation_id
-                WHERE c.room = %s
-                ORDER BY m.created_at ASC
-            """, (room_name,))
-            mensagens = cursor.fetchall()
+        if existing:
+            return existing["id"], existing["room"]
 
-        print(f"✅ {len(mensagens)} mensagens carregadas da sala {room_name}")
-        return jsonify(mensagens)
+        # senão existir, cria
+        room_name = f"chat_{user_a_id}_{user_b_id}"
+        cursor.execute("INSERT INTO conversations (room) VALUES (%s)", (room_name,))
+        conversation_id = cursor.lastrowid
 
-    except Exception as e:
-        print(f"❌ Erro ao carregar mensagens da sala {room_name}: {e}")
-        return jsonify({"error": str(e)}), 500
+        # adiciona os dois participantes
+        cursor.executemany("""
+            INSERT INTO conversation_participants (conversation_id, user_id)
+            VALUES (%s, %s)
+        """, [(conversation_id, user_a_id), (conversation_id, user_b_id)])
+
+        return conversation_id, room_name

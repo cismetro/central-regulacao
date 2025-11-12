@@ -7,19 +7,23 @@
 
     <!-- Abas -->
     <div id="chat-tabs" class="flex border-b border-slate-200 bg-slate-50">
-        {% if role in ['malote', 'admin'] %}
-            <button class="tab-button active px-4 py-2 text-sm font-medium text-primario-700 border-b-2 border-primario-600"
-                data-room="malote_admin">Malote</button>
-        {% endif %}
-        {% if role in ['recepcao', 'admin'] %}
-            <button class="tab-button px-4 py-2 text-sm font-medium text-slate-600 hover:text-primario-700"
-                data-room="recepcao_admin">Recepção</button>
-        {% endif %}
-        {% if role in ['medico_regulador', 'admin'] %}
-            <button class="tab-button px-4 py-2 text-sm font-medium text-slate-600 hover:text-primario-700"
-                data-room="regulacao_admin">Regulação</button>
-        {% endif %}
+      {% if role == 'admin' %}
+        {% for conversa in conversas %}
+          <button class="tab-button {% if loop.first %}active border-b-2 border-primario-600 text-primario-700{% else %}text-slate-600 hover:text-primario-700{% endif %} px-4 py-2 text-sm font-medium"
+                  data-room="{{ conversa.room }}"
+                  data-id="{{ conversa.id }}">
+            {{ conversa.participantes }}
+          </button>
+        {% endfor %}
+      {% else %}
+        <button class="tab-button active px-4 py-2 text-sm font-medium text-primario-700 border-b-2 border-primario-600"
+                data-room="{{ room_name }}"
+                data-id="{{ conversation_id }}">
+          Chat com Admin
+        </button>
+      {% endif %}
     </div>
+
     <!-- Mensagens -->
     <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50"></div>
 
@@ -41,61 +45,75 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
 <script>
   const socket = io.connect();
-  let currentRoom = "malote_admin";
+
+  let currentRoom = "{{ room_name or (conversas[0].room if conversas|length > 0 else '') }}";
+  let conversationId = "{{ conversation_id or (conversas[0].id if conversas|length > 0 else 0) }}";
+  const currentUser = "{{ current_user.nome }}";
+  const isAdmin = "{{ role }}" === "admin";
 
   const messagesDiv = document.getElementById("messages");
   const messageInput = document.getElementById("message-input");
   const sendButton = document.getElementById("send-button");
   const tabs = document.querySelectorAll(".tab-button");
 
-  // 🔹 Carrega mensagens salvas
-  async function loadMessages(roomName) {
-    console.log("📜 Carregando mensagens da sala:", roomName);
-    try {
-      const res = await fetch(`/chat/mensagens/${roomName}`);
-      const mensagens = await res.json();
+  async function loadMessages(conversationId) {
+  console.log("📜 Carregando mensagens da conversa:", conversationId);
+  try {
+    const res = await fetch(`/chat/mensagens/${conversationId}`);
+    const mensagens = await res.json();
 
-      messagesDiv.innerHTML = "";
-      mensagens.forEach(msg => {
-        const msgElem = document.createElement("div");
-        msgElem.classList.add("px-3", "py-2", "rounded-xl", "max-w-[75%]", "text-sm", "shadow-sm");
-        msgElem.classList.add(msg.user === "{{ current_user.nome }}" ? "bg-primario-100" : "bg-white", "border", "border-slate-200");
-        msgElem.innerHTML = `<strong>${msg.user}:</strong> ${msg.message}`;
-        messagesDiv.appendChild(msgElem);
-      });
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    } catch (e) {
-      console.error("❌ Erro ao carregar mensagens:", e);
-    }
+    messagesDiv.innerHTML = "";
+    mensagens.forEach(msg => {
+      const msgElem = document.createElement("div");
+      msgElem.classList.add("px-3", "py-2", "rounded-xl", "max-w-[75%]", "text-sm", "shadow-sm");
+
+      if (msg.user === "{{ current_user.nome }}") {
+        msgElem.classList.add("bg-primario-100", "self-end", "ml-auto");
+      } else {
+        msgElem.classList.add("bg-white", "border", "border-slate-200");
+      }
+
+      msgElem.innerHTML = `<strong>${msg.user}:</strong> ${msg.message}`;
+      messagesDiv.appendChild(msgElem);
+    });
+
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  } catch (e) {
+    console.error("❌ Erro ao carregar mensagens:", e);
   }
+}
 
-  // 🔹 Entra em uma sala
-  function joinRoom(roomName) {
+  function joinRoom(roomName, id) {
     console.log("🔁 Entrando na sala:", roomName);
     socket.emit("join", { room: roomName });
     currentRoom = roomName;
+    conversationId = id;
+
     tabs.forEach(btn => btn.classList.remove("active", "border-b-2", "border-primario-600", "text-primario-700"));
-    document.querySelector(`[data-room="${roomName}"]`)
-      .classList.add("active", "border-b-2", "border-primario-600", "text-primario-700");
-    loadMessages(roomName);
+    const activeTab = document.querySelector(`[data-room="${roomName}"]`);
+    if (activeTab)
+      activeTab.classList.add("active", "border-b-2", "border-primario-600", "text-primario-700");
+
+    loadMessages(id);
   }
 
-  // 🔹 Troca de aba
   tabs.forEach(btn => {
-    btn.addEventListener("click", () => joinRoom(btn.dataset.room));
+    btn.addEventListener("click", () => {
+      const room = btn.dataset.room;
+      const id = btn.dataset.id;
+      joinRoom(room, id);
+    });
   });
 
-  // 🔹 Conectado
   socket.on("connect", () => {
     console.log("✅ Conectado ao servidor SocketIO");
-    joinRoom(currentRoom);
+    joinRoom(currentRoom, conversationId);
   });
 
-  // 🔹 Nova mensagem recebida
   socket.on("message", data => {
     const messageElem = document.createElement("div");
     messageElem.classList.add("px-3", "py-2", "rounded-xl", "max-w-[75%]", "text-sm", "shadow-sm");
-    if (data.user === "Você") {
+    if (data.user === currentUser) {
       messageElem.classList.add("bg-primario-100", "self-end", "ml-auto");
     } else {
       messageElem.classList.add("bg-white", "border", "border-slate-200");
@@ -105,10 +123,9 @@
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 
-  // 🔹 Enviar mensagem
   sendButton.onclick = function() {
     if (!messageInput.value.trim()) return;
-    socket.emit("send_message", { room: currentRoom, message: messageInput.value });
+    socket.emit("send_message", { room: currentRoom, message: messageInput.value, conversation_id: conversationId });
     messageInput.value = "";
   };
 
