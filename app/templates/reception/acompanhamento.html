@@ -56,10 +56,11 @@
                 <h3 class="text-lg font-semibold text-slate-700">
                   Pedido #{{ pedido.id }}
                 </h3>
-                <p class="text-slate-600">{{ pedido.exame_nome }}</p>
+               
                 <p class="text-sm text-slate-500">
-                  Solicitado em {{ pedido.data_solicitacao.strftime("%d/%m/%Y às %H:%M") if pedido.data_solicitacao }}
+                  Solicitado em {{ pedido.data_solicitacao.strftime("%d/%m/%Y às %H:%M") if pedido.data_solicitacao }} • {{ pedido.unidade_nome }}
                 </p>
+                <p class="text-slate-600">{{ pedido.exame_nome or pedido.nome_solicitacao }}</p>
               </div>
               <div class="text-right">
                 {% set status_class = 'bg-blue-100 text-blue-800' %}
