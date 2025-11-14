@@ -65,21 +65,8 @@
 </head>
 <body>
   <div class="login-container">
-    <!-- Card de Login - Largura fixa -->
+    <!-- Card de Login - SEM logo, apenas formulário -->
     <div class="login-card bg-white flex flex-col justify-center px-8 py-12">
-      <!-- Logo e Título -->
-      <div class="text-center mb-8">
-        <div class="flex justify-center mb-6">
-          <span class="flex h-20 w-20 items-center justify-center rounded-2xl bg-primario-100 text-primario-700 shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5V6a3 3 0 013-3h4.5M21 10.5V18a3 3 0 01-3 3h-4.5M21 10.5h-6a3 3 0 01-3-3V3M3 13.5h6a3 3 0 013 3V21" />
-            </svg>
-          </span>
-        </div>
-        <h1 class="text-2xl font-bold text-slate-800 mb-2">Central de Regulação</h1>
-        <p class="text-slate-600 text-sm">Secretaria Municipal de Saúde</p>
-      </div>
-
       <!-- Formulário de Login -->
       <form method="post" class="space-y-6">
         <!-- Campo CPF -->
@@ -143,61 +130,61 @@
       </div>
     </div>
 
-    <!-- Área direita - Centralized -->
+    <!-- Área direita - COM LOGO E TÍTULO DO SISTEMA -->
     <div class="image-area bg-gradient-to-br from-primario-500 via-primario-600 to-primario-800 relative">
       <!-- Overlay com padrão médico -->
       <div class="absolute inset-0 bg-black opacity-10"></div>
       <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot;><defs><pattern id=&quot;medical&quot; width=&quot;50&quot; height=&quot;50&quot; patternUnits=&quot;userSpaceOnUse&quot;><circle cx=&quot;25&quot; cy=&quot;25&quot; r=&quot;1&quot; fill=&quot;%23ffffff&quot; opacity=&quot;0.1&quot;/><path d=&quot;M25 15v20M15 25h20&quot; stroke=&quot;%23ffffff&quot; stroke-width=&quot;0.5&quot; opacity=&quot;0.1&quot;/></pattern></defs><rect width=&quot;100&quot; height=&quot;100&quot; fill=&quot;url(%23medical)&quot;/></svg>'); opacity: 0.3;"></div>
       
-      <!-- Conteúdo bem centralizado -->
+      <!-- Logo e título do sistema centralizados -->
       <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-12">
-        <!-- Ícone principal -->
-        <div class="mb-8">
-          <div class="w-32 h-32 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm mb-6 shadow-2xl">
-            <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-8 2h2v4h4v2h-4v4h-2v-4H7v-2h4V5z"/>
+        <!-- Logo principal -->
+        <div class="mb-12">
+          <div class="w-40 h-40 bg-white bg-opacity-20 rounded-3xl flex items-center justify-center backdrop-blur-sm shadow-2xl mb-8">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5V6a3 3 0 013-3h4.5M21 10.5V18a3 3 0 01-3 3h-4.5M21 10.5h-6a3 3 0 01-3-3V3M3 13.5h6a3 3 0 013 3V21" />
             </svg>
           </div>
         </div>
 
-        <!-- Textos principais -->
-        <h2 class="text-5xl font-bold mb-4 tracking-wider">SAÚDE</h2>
-        <h3 class="text-xl font-medium text-primario-100 mb-12 tracking-wide">ATENÇÃO PRIMÁRIA</h3>
+        <!-- Títulos principais -->
+        <h1 class="text-5xl font-bold mb-4 tracking-wide">Central de Regulação</h1>
+        <h2 class="text-2xl font-medium text-primario-100 mb-12">Secretaria Municipal de Saúde</h2>
         
-        <!-- Card de informações centralizado -->
-        <div class="max-w-lg bg-white bg-opacity-15 rounded-xl p-8 backdrop-blur-md border border-white border-opacity-20 shadow-xl">
-          <h4 class="text-xl font-semibold mb-4">Sistema de Regulação</h4>
-          <p class="text-base text-primario-50 leading-relaxed">
+        <!-- Card de informações -->
+        <div class="max-w-2xl bg-white bg-opacity-15 rounded-2xl p-8 backdrop-blur-md border border-white border-opacity-20 shadow-xl">
+          <h3 class="text-2xl font-semibold mb-6">Sistema de Regulação</h3>
+          <p class="text-lg text-primario-50 leading-relaxed mb-6">
             Plataforma integrada para gerenciamento de pedidos de exames, 
             regulação médica e agendamentos da atenção primária à saúde.
           </p>
-        </div>
-
-        <!-- Indicadores visuais -->
-        <div class="mt-16 flex items-center justify-center gap-12">
-          <div class="text-center">
-            <div class="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-3 mx-auto">
-              <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l.09 8.26L22 12l-9.91 1.74L12 22l-.09-8.26L2 12l9.91-1.74L12 2z"/>
-              </svg>
+          
+          <!-- Módulos do sistema -->
+          <div class="grid grid-cols-3 gap-6 mt-8">
+            <div class="text-center">
+              <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mb-3 mx-auto">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l.09 8.26L22 12l-9.91 1.74L12 22l-.09-8.26L2 12l9.91-1.74L12 2z"/>
+                </svg>
+              </div>
+              <p class="text-sm text-primario-100 font-medium">Regulação</p>
             </div>
-            <p class="text-sm text-primario-200">Regulação</p>
-          </div>
-          <div class="text-center">
-            <div class="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-3 mx-auto">
-              <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3h4v2h-4V6zm0 4h4v2h-4v-2zM6 6h4v2H6V6zm0 4h4v2H6v-2zm0 4h8v2H6v-2z"/>
-              </svg>
+            <div class="text-center">
+              <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mb-3 mx-auto">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3h4v2h-4V6zm0 4h4v2h-4v-2zM6 6h4v2H6V6zm0 4h4v2H6v-2zm0 4h8v2H6v-2z"/>
+                </svg>
+              </div>
+              <p class="text-sm text-primario-100 font-medium">Agendamentos</p>
             </div>
-            <p class="text-sm text-primario-200">Agendamentos</p>
-          </div>
-          <div class="text-center">
-            <div class="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-3 mx-auto">
-              <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/>
-              </svg>
+            <div class="text-center">
+              <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mb-3 mx-auto">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/>
+                </svg>
+              </div>
+              <p class="text-sm text-primario-100 font-medium">Relatórios</p>
             </div>
-            <p class="text-sm text-primario-200">Relatórios</p>
           </div>
         </div>
       </div>
@@ -245,17 +232,42 @@
       const imageArea = document.querySelector('.image-area');
       
       if (window.innerWidth < 1024) {
-        // Mobile: ocultar área da imagem
+        // Mobile: ocultar área da imagem e mostrar logo no card
         if (imageArea) {
           imageArea.style.display = 'none';
         }
         if (container) {
           container.style.justifyContent = 'center';
         }
+        
+        // Adicionar logo no mobile
+        const loginCard = document.querySelector('.login-card');
+        if (loginCard && !loginCard.querySelector('.mobile-logo')) {
+          const logoDiv = document.createElement('div');
+          logoDiv.className = 'mobile-logo text-center mb-8';
+          logoDiv.innerHTML = `
+            <div class="flex justify-center mb-4">
+              <span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-primario-100 text-primario-700 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5V6a3 3 0 013-3h4.5M21 10.5V18a3 3 0 01-3 3h-4.5M21 10.5h-6a3 3 0 01-3-3V3M3 13.5h6a3 3 0 013 3V21" />
+                </svg>
+              </span>
+            </div>
+            <h1 class="text-xl font-bold text-slate-800 mb-2">Central de Regulação</h1>
+            <p class="text-slate-600 text-sm">Secretaria Municipal de Saúde</p>
+          `;
+          loginCard.insertBefore(logoDiv, loginCard.firstChild);
+        }
       } else {
-        // Desktop: mostrar área da imagem
+        // Desktop: mostrar área da imagem e remover logo do card
         if (imageArea) {
           imageArea.style.display = 'block';
+        }
+        
+        // Remover logo do mobile se existir
+        const mobileLogo = document.querySelector('.mobile-logo');
+        if (mobileLogo) {
+          mobileLogo.remove();
         }
       }
     }
@@ -307,4 +319,3 @@
   </style>
 </body>
 </html>
-n
